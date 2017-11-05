@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <string.h>
+
 #define SYM_END 0
 #define SYM_READ4 1
 #define SYM_READN 3
@@ -21,7 +22,6 @@
  
 void * eval(unsigned char * stack, unsigned char * bytecode){
   uint32_t tempi = 0;
-  float tempf = 0;
   int running = 1;
   char code;
   
@@ -109,8 +109,7 @@ void * eval(unsigned char * stack, unsigned char * bytecode){
       break;
     }
   }
+  return NULL;
 }
 
-int main(){
-  //1 2 +
-}
+

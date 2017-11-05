@@ -1,5 +1,6 @@
 #include <stdio.h>
-
+#include "graphics.h"
 int main(){
-  printf("hi!\n");
+  return graphics_main();
+  //printf("hi!\n");
 }
