@@ -1,6 +1,3 @@
-#include <unistd.h>
-#include <ncurses.h>
-#include <time.h>
 #include "graphics.h"
 
 int start_graphics(){
@@ -14,6 +11,17 @@ int start_graphics(){
   noecho();
   raw();
   curs_set(0);
+  keypad(stdscr, TRUE);
+  colors = init_colors(3);
+  for(int i = 0; i < KEY_MAP_SIZE; ++i){
+    key_map[i] = &key_out;
+  }
+  key_map[3] = &key_quit;
+  key_map[26] = &key_quit;
+  key_map[410] = &key_resize;
+  init_pair(colors[0], COLOR_YELLOW, COLOR_BLACK);
+  init_pair(colors[1], COLOR_BLUE, COLOR_BLACK);
+  init_pair(colors[2], COLOR_WHITE, COLOR_BLACK);
   return 0;
 }
 
@@ -32,31 +40,128 @@ void prints(char * s){
   }
 }
 
+int printns(char * s, int n){
+  char c;
+  while(n && (c=*(s++))){
+    addch(c);
+    --n;
+  }
+  return n;
+}
+
+flavor * make_flavor(short cpair, char * text, flavor * next){
+  flavor * f = (flavor *)malloc(sizeof(flavor));
+  f->cpair = cpair;
+  f->text = text;
+  f->next = next;
+  return f;
+}
+
+void free_flavor(flavor * f){
+  flavor * next;
+  while(f != NULL){
+    next = f->next;
+    free(f->text);
+    free(f);
+    f = next;
+  }
+}
+
+//avoiding posix
+char * strdup (const char *s) {
+  int len;
+  char *d;
+  if (s == NULL) return NULL;
+  len = strlen (s) + 1;
+  d = malloc(len);
+  strcpy(d, s);
+  d[len - 1] = 0;
+  return d;
+}
+
+void printcs(flavor * f){
+  while(f != NULL){
+    attron(COLOR_PAIR(f->cpair));
+    prints(f->text);
+    attroff(COLOR_PAIR(f->cpair));
+    f = f->next;
+  }
+}
+
+int printncs(flavor * f, int n){
+  if(n < 0)
+    n = 0;
+  while(n && f != NULL){
+    attron(COLOR_PAIR(f->cpair));
+    n = printns(f->text, n);
+    attroff(COLOR_PAIR(f->cpair));
+    f = f->next;
+  }
+  return n;
+}
+
+short * init_colors(short len){
+  short * colors = (short *)malloc(sizeof(short) * len);
+  for(short i = 0; i < len; ++i){
+    colors[i] = i + 1;
+  }
+  return colors;
+}
+
+int key_quit(int c){
+  return 1;
+}
+
+int key_out(int c){
+  char buff[100];
+  int s;
+  s = snprintf(buff, 99, "%i ", c);
+  buff[s] = 0;
+  prints(buff);
+  return 0;
+}
+
+void redraw(){
+
+}
+
+/*
+  binding to resize the screen.
+ */
+int key_resize(int key){
+  getmaxyx(stdscr, MAX_Y, MAX_X);
+
+  redraw();
+  refresh();
+
+  return 0;
+}
+
+int input_loop(){
+  int c;
+  key_fn f;
+  c = getch();
+  if(c < 0 || c > KEY_MAP_SIZE)
+    c = 0;
+  f = key_map[c]; 
+  if(f(c))
+    return 1;
+  return 0;
+}
+
 int graphics_main(){
   if(start_graphics())
     return 1;
-  /*init_color(COLOR_RED, 184, 142, 12);
-    init_color(COLOR_GREEN, 78, 154, 6);*/
   
-  /*init_color(COLOR_BLUE, 78, 154, 6);*/
-  /*init_pair(colors_display, COLOR_BLACK, COLOR_GREEN);
-  init_pair(colors_input, COLOR_BLACK, COLOR_YELLOW);
-  init_pair(colors_prompt, COLOR_BLACK, COLOR_WHITE);*/
-  /*scrollok(stdscr, TRUE);*/
-  /*win = newwin(0,0,LINES,COLS);*/
-  
-  //keypad(stdscr, TRUE);
-  //
   erase();
   move(0,0);
-  prints("hello!");
+  flavor *test = make_flavor(colors[0], strdup("hello "), make_flavor(colors[1], strdup("nice (very) (ultra) (super) "), make_flavor(colors[2], strdup("day!"), NULL)));
+  printncs(test, 20);
+  free_flavor(test);
+  while(!input_loop());
   refresh();
-  sleep(1);
-  
-  //nodelay(stdscr, TRUE);
-  //resize(0);
+
   end_graphics();
-  printf("hi\n");
 
   return 0;
 }
