@@ -7,7 +7,10 @@
 #include <time.h>
 #include <stdlib.h>
 #define KEY_MAP_SIZE 1024
-
+#define COLOR_GOOD_M 1
+#define COLOR_MID_M 2
+#define COLOR_LOW_M 3
+#define COLOR_MAX 3
 int MAX_X, MAX_Y;
 short * colors;
 typedef int (*key_fn)(int);

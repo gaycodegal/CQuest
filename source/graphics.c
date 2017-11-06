@@ -12,7 +12,7 @@ int start_graphics(){
   raw();
   curs_set(0);
   keypad(stdscr, TRUE);
-  colors = init_colors(3);
+  colors = init_colors(COLOR_MAX);
   for(int i = 0; i < KEY_MAP_SIZE; ++i){
     key_map[i] = &key_out;
   }
@@ -20,8 +20,8 @@ int start_graphics(){
   key_map[26] = &key_quit;
   key_map[410] = &key_resize;
   init_pair(colors[0], COLOR_YELLOW, COLOR_BLACK);
-  init_pair(colors[1], COLOR_BLUE, COLOR_BLACK);
-  init_pair(colors[2], COLOR_WHITE, COLOR_BLACK);
+  init_pair(colors[1], COLOR_RED, COLOR_BLACK);
+  init_pair(colors[2], COLOR_BLUE, COLOR_BLACK);
   return 0;
 }
 
