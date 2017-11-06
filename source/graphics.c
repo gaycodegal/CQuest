@@ -22,6 +22,7 @@ int start_graphics(){
   init_pair(colors[0], COLOR_YELLOW, COLOR_BLACK);
   init_pair(colors[1], COLOR_RED, COLOR_BLACK);
   init_pair(colors[2], COLOR_BLUE, COLOR_BLACK);
+  key_resize(410);
   return 0;
 }
 
@@ -54,6 +55,15 @@ flavor * make_flavor(short cpair, char * text, flavor * next){
   f->cpair = cpair;
   f->text = text;
   f->next = next;
+  return f;
+}
+
+flavor * last_flavor(flavor * f){
+  flavor * next = f->next;
+  while(next != NULL){
+    f = next;
+    next = f->next;
+  }
   return f;
 }
 

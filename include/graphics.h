@@ -27,6 +27,7 @@ void prints(char * s);
 int printns(char * s, int n);
 flavor * make_flavor(short cpair, char * text, flavor * next);
 void free_flavor(flavor * f);
+flavor * last_flavor(flavor * f);
 char * strdup (const char *s);
 void printcs(flavor * f);
 int printncs(flavor * f, int n);

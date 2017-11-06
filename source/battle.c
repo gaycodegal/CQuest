@@ -1,9 +1,41 @@
 #include "battle.h"
 
+statbar * make_statbar(char * sym, char * delim, int score, int base){
+  statbar * bar = (statbar *)malloc(sizeof(statbar));
+  flavor * fsym = make_flavor(0, sym, NULL);
+  char *cscore = (char *)malloc(11*sizeof(char)), *cbase = (char *)malloc(11*sizeof(char));
+  flavor * fbase = make_flavor(0, cbase, NULL);
+  flavor * fscore = make_flavor(0, cscore, NULL);
+  flavor * fdelim = make_flavor(0, delim, NULL);
+  snprintf(cscore, 10, "%i", score);
+  snprintf(cbase, 10, "%i", base);
+  bar->ftotal = fsym;
+  bar->fsym = fsym;
+  bar->fscore = fscore;
+  bar->fdelim = fdelim;
+  bar->fbase = fbase;
+  last_flavor(bar->fsym)->next = fscore;
+  last_flavor(bar->fscore)->next = fdelim;
+  last_flavor(bar->fdelim)->next = fbase;
+  bar->score = score;
+  bar->base = base;
+  return bar;
+}
+
+void draw_statbar(int x, int y, statbar * bar){
+  move(x, y);
+  printncs(bar->ftotal, MAX_X - x);
+}
+
+void free_statbar(statbar * bar){
+  free_flavor(bar->ftotal);
+  free(bar);
+}
+
 healthbar * make_healthbar(int health, int length){
   healthbar * hbar = (healthbar *)malloc(sizeof(healthbar));
   char * bar;
-  char c = ':';
+  char c = '/';
   int i;
   --length;
   bar = (char *)malloc(sizeof(char) * length);
@@ -34,10 +66,12 @@ void set_health(healthbar * bar, int value){
     bar->bar->cpair = COLOR_GOOD_M;
   }
   s = bar->value*e/bar->health;
+  if(s == 0 && bar->value != 0) s = 1;
   for(i = s; i < e; ++i){
     text[i] = c;
   }
   s = value*e/bar->health;
+  if(s == 0 && value != 0) s = 1;
   for(i = s; i < e; ++i){
     text[i] = ' ';
   }
@@ -51,7 +85,7 @@ void free_healthbar(healthbar * bar){
 
 void draw_healthbar(int x, int y, healthbar * bar){
   move(x, y);
-  printcs(bar->display);
+  printncs(bar->display, MAX_X - x);
 }
 
 int battle_main(){
@@ -71,6 +105,9 @@ int battle_main(){
   set_health(bar, 100);
   draw_healthbar(4, 10, bar);
   free_healthbar(bar);
+  statbar * sbar = make_statbar(strdup("HP: "), strdup(" / "), 90, 100);
+  draw_statbar(5, 10, sbar);
+  free_statbar(sbar);
   free_flavor(test);
   while(!input_loop());
   refresh();
