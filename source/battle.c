@@ -23,13 +23,14 @@ statbar * make_statbar(char * sym, char * delim, int score, int base){
 }
 
 void draw_statbar(int x, int y, statbar * bar){
-  move(x, y);
+  move(y, x);
   printncs(bar->ftotal, MAX_X - x);
 }
 
-void free_statbar(statbar * bar){
-  free_flavor(bar->ftotal);
+void *free_statbar(void *bar){
+  free_flavor(((statbar *)bar)->ftotal);
   free(bar);
+  return NULL;
 }
 
 healthbar * make_healthbar(int health, int length){
@@ -84,31 +85,65 @@ void free_healthbar(healthbar * bar){
 }
 
 void draw_healthbar(int x, int y, healthbar * bar){
-  move(x, y);
+  move(y, x);
   printncs(bar->display, MAX_X - x);
+}
+
+void draw_monster(int x, int y, monster *m){
+  int n;
+  move(y, x);
+  n = MAX_X - x;
+  node * t = m->stats->head;
+  while(n && t != NULL){
+    n = printncs(((statbar *)t->data)->ftotal, n);
+    n = printns("   ", n);
+    t = t->next;
+  }
+}
+
+stat *make_stat(int v, int m){
+  stat *s = NEW(stat);
+  s->value = v;
+  s->max = m;
+  return s;
+}
+
+monster *make_monster(stat * health, stat * damage){
+  monster *m = NEW(monster);
+  
+  return m;
 }
 
 int battle_main(){
   if(start_graphics())
     return 1;
+
+  monster * m = MALLOC(monster, 1);
+  statbar * mhp = make_statbar(strdup("HP: "), strdup(" / "), 90, 100);
+  statbar * mattack = make_statbar(strdup("ATK: "), strdup(" - "), 114, 120);
+  m->stats = make_list();
+  add_elem(mhp, m->stats);
+  add_elem(mattack, m->stats);
+  
   
   erase();
   move(0,0);
-  flavor *test = make_flavor(colors[0], strdup("hello "), make_flavor(colors[1], strdup("nice (very) (ultra) (super) "), make_flavor(colors[2], strdup("day!"), NULL)));
+  draw_monster(0, 0, m);
+  static_map_list(m->stats, &free_statbar);
+  free(m);
+
   healthbar * bar = make_healthbar(100, 10);
-  printncs(test, 20);
-  draw_healthbar(1, 10, bar);
+  draw_healthbar(1, 2, bar);
   set_health(bar, 25);
-  draw_healthbar(2, 10, bar);
+  draw_healthbar(1, 3, bar);
   set_health(bar, 70);
-  draw_healthbar(3, 10, bar);
+  draw_healthbar(1, 4, bar);
   set_health(bar, 100);
-  draw_healthbar(4, 10, bar);
+  draw_healthbar(1, 5, bar);
   free_healthbar(bar);
   statbar * sbar = make_statbar(strdup("HP: "), strdup(" / "), 90, 100);
   draw_statbar(5, 10, sbar);
   free_statbar(sbar);
-  free_flavor(test);
   while(!input_loop());
   refresh();
 
