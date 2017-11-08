@@ -13,16 +13,9 @@ int start_graphics(){
   curs_set(0);
   keypad(stdscr, TRUE);
   colors = init_colors(COLOR_MAX);
-  for(int i = 0; i < KEY_MAP_SIZE; ++i){
-    key_map[i] = &key_out;
-  }
-  key_map[3] = &key_quit;
-  key_map[26] = &key_quit;
-  key_map[410] = &key_resize;
   init_pair(colors[0], COLOR_YELLOW, COLOR_BLACK);
   init_pair(colors[1], COLOR_RED, COLOR_BLACK);
   init_pair(colors[2], COLOR_BLUE, COLOR_BLACK);
-  key_resize(410);
   return 0;
 }
 
@@ -118,33 +111,8 @@ short * init_colors(short len){
   return colors;
 }
 
-int key_quit(int c){
-  return 1;
-}
-
-int key_out(int c){
-  char buff[100];
-  int s;
-  s = snprintf(buff, 99, "%i ", c);
-  buff[s] = 0;
-  prints(buff);
-  return 0;
-}
-
 void redraw(){
 
-}
-
-/*
-  binding to resize the screen.
- */
-int key_resize(int key){
-  getmaxyx(stdscr, MAX_Y, MAX_X);
-
-  redraw();
-  refresh();
-
-  return 0;
 }
 
 int input_loop(){
@@ -162,6 +130,8 @@ int input_loop(){
 int graphics_main(){
   if(start_graphics())
     return 1;
+  bind_keys();
+  key_resize(410);
   
   erase();
   move(0,0);

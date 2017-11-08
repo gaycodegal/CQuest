@@ -27,12 +27,23 @@ typedef struct s_stat {
 
 typedef struct s_monster {
   list *stats;
-  healthbar *hpbar;
+  healthbar *bar;
+  statbar * hp;
+  statbar * atk;
+  stat *health;
+  stat *attack;
 } monster;
 
+monster *fighting;
+monster *player;
+
+void statbar_set(statbar *b, int score, int base);
+void statbar_color(statbar *s, short cval, short cbase);
+void set_monster_health(monster *m, int value);
 stat *make_stat(int v, int m);
-monster *make_monster(stat * health, stat * damage);
+monster *make_monster(stat * health, stat * attack);
 void draw_monster(int x, int y, monster *m);
+void *free_monster(void *mons);
 statbar * make_statbar(char *sym, char *delim, int score, int base);
 void draw_statbar(int x, int y, statbar *bar);
 void *free_statbar(void *bar);

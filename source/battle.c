@@ -7,8 +7,6 @@ statbar * make_statbar(char * sym, char * delim, int score, int base){
   flavor * fbase = make_flavor(0, cbase, NULL);
   flavor * fscore = make_flavor(0, cscore, NULL);
   flavor * fdelim = make_flavor(0, delim, NULL);
-  snprintf(cscore, 10, "%i", score);
-  snprintf(cbase, 10, "%i", base);
   bar->ftotal = fsym;
   bar->fsym = fsym;
   bar->fscore = fscore;
@@ -19,7 +17,13 @@ statbar * make_statbar(char * sym, char * delim, int score, int base){
   last_flavor(bar->fdelim)->next = fbase;
   bar->score = score;
   bar->base = base;
+  statbar_set(bar, score, base);
   return bar;
+}
+
+void statbar_set(statbar *b, int score, int base){
+  snprintf(b->fscore->text, 10, "%i", score);
+  snprintf(b->fbase->text, 10, "%i", base);
 }
 
 void draw_statbar(int x, int y, statbar * bar){
@@ -47,25 +51,28 @@ healthbar * make_healthbar(int health, int length){
   for(i = 0; i < length; ++i){
     bar[i] = c;
   }
-  hbar->bar = make_flavor(COLOR_GOOD_M, bar, make_flavor(0, strdup("]"), NULL));
+  hbar->bar = make_flavor(0, bar, make_flavor(0, strdup("]"), NULL));
   hbar->display = make_flavor(0, strdup("["), hbar->bar);
   hbar->health = health;
   hbar->value = health;
   return hbar;
 }
 
+short health_color(float value, float max){
+  float v = value/max;
+  if(v > 0.5 && v <= 0.75){
+    return COLOR_MID_M;
+  }else if(v <= 0.5){
+    return COLOR_LOW_M;
+  }else{
+    return COLOR_GOOD_M;
+  }
+}
+
 void set_health(healthbar * bar, int value){
   int i, s, e = bar->length;
   char c = bar->c;
   char * text = bar->bar->text;
-  float v = (float)value/(float)(bar->health);
-  if(v > 0.5 && v <= 0.75){
-    bar->bar->cpair = COLOR_MID_M;
-  }else if(v <= 0.5){
-    bar->bar->cpair = COLOR_LOW_M;
-  }else{
-    bar->bar->cpair = COLOR_GOOD_M;
-  }
   s = bar->value*e/bar->health;
   if(s == 0 && bar->value != 0) s = 1;
   for(i = s; i < e; ++i){
@@ -99,6 +106,7 @@ void draw_monster(int x, int y, monster *m){
     n = printns("   ", n);
     t = t->next;
   }
+  draw_healthbar(x + 2, y + 1, m->bar);
 }
 
 stat *make_stat(int v, int m){
@@ -108,46 +116,87 @@ stat *make_stat(int v, int m){
   return s;
 }
 
-monster *make_monster(stat * health, stat * damage){
+monster *make_monster(stat *health, stat *attack){
   monster *m = NEW(monster);
-  
+  statbar *hp = make_statbar(strdup("HP: "), strdup(" / "), health->value, health->max);
+  statbar *atk = make_statbar(strdup("ATK: "), strdup(" - "), attack->value, attack->max);
+  m->stats = make_list();
+  append_elem(hp, m->stats);
+  append_elem(atk, m->stats);
+  m->health = health;
+  m->attack = attack;
+  m->hp = hp;
+  m->atk = atk;
+  m->bar = make_healthbar(health->max, 30);
+  set_monster_health(m, health->value);
   return m;
 }
 
+void statbar_color(statbar *s, short cval, short cbase){
+  s->fscore->cpair = cval;
+  s->fbase->cpair = cbase;
+}
+
+void set_monster_health(monster *m, int value){
+  short c = health_color(value, m->health->max);
+  m->bar->bar->cpair = c;
+  statbar_color(m->hp, c, c);
+  m->health->value = value;
+  set_health(m->bar, value);
+  statbar_set(m->hp, value, m->health->max);
+}
+
+void *free_monster(void *mons){
+  monster *m = (monster *)mons;
+  static_map_list(m->stats, &free_statbar);
+  free_list(m->stats);
+  free(m->health);
+  free(m->attack);
+  free_healthbar(m->bar);
+  free(m);
+  return NULL;
+}
+
+float frand(){
+  return (float)rand()/((float)RAND_MAX);
+}
+
+int attack1(int c){
+  int v = fighting->health->value;
+  float f = (frand() * (float)(player->attack->max - player->attack->value) + player->attack->value);
+  v -= (int)f;
+  
+  if (v < 0) v = 0;
+  set_monster_health(fighting, v);
+  draw_monster(0, 0, fighting);
+  return 0; 
+}
+
+void battle_keys(){
+  key_map[49] = &attack1;
+}
+
 int battle_main(){
+  srand((unsigned int)time(NULL));
   if(start_graphics())
     return 1;
+  bind_keys();
+  battle_keys();
+  key_resize(410);
 
-  monster * m = MALLOC(monster, 1);
-  statbar * mhp = make_statbar(strdup("HP: "), strdup(" / "), 90, 100);
-  statbar * mattack = make_statbar(strdup("ATK: "), strdup(" - "), 114, 120);
-  m->stats = make_list();
-  add_elem(mhp, m->stats);
-  add_elem(mattack, m->stats);
-  
+  monster *m = make_monster(make_stat(100, 100), make_stat(1, 5));
+  fighting = m;
+  player = m;
   
   erase();
   move(0,0);
-  draw_monster(0, 0, m);
-  static_map_list(m->stats, &free_statbar);
-  free(m);
+  draw_monster(0, 0, m);  
 
-  healthbar * bar = make_healthbar(100, 10);
-  draw_healthbar(1, 2, bar);
-  set_health(bar, 25);
-  draw_healthbar(1, 3, bar);
-  set_health(bar, 70);
-  draw_healthbar(1, 4, bar);
-  set_health(bar, 100);
-  draw_healthbar(1, 5, bar);
-  free_healthbar(bar);
-  statbar * sbar = make_statbar(strdup("HP: "), strdup(" / "), 90, 100);
-  draw_statbar(5, 10, sbar);
-  free_statbar(sbar);
   while(!input_loop());
   refresh();
 
   end_graphics();
+  free_monster(m);
 
   return 0;
 }
