@@ -12,4 +12,4 @@ For the game jam, I just intend to get battles/dueling simulated in a very basic
 ## Running
 
     usage: ./cquest <mode>
-    modes: battle, graphics, filereader, atacks
+    modes: battle, graphics, filereader, attacks

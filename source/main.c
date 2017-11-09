@@ -32,7 +32,7 @@ int main(int argc, char **argv){
     status = hashmap_get(mains_map, argv[1], p);
   if(status != MAP_OK){
     printf("usage: %s <mode>\n", *argv);
-    printf("modes: battle, graphics, filereader, atacks\n");
+    printf("modes: battle, graphics, filereader, attacks\n");
     return 1;
   }else{
     f = *(mainfn *)*p;
