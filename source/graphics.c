@@ -1,6 +1,7 @@
 #include "graphics.h"
 
 int start_graphics(){
+  todraw = make_list();
   initscr();
   if(has_colors() == FALSE){
     endwin();
@@ -19,11 +20,18 @@ int start_graphics(){
   return 0;
 }
 
+void empty_todraw(){
+  static_map_list(todraw, freeAny);
+  empty_list(todraw);
+}
+
 int end_graphics(){
   echo();
   noraw();
   curs_set(1);
   endwin();
+  static_map_list(todraw, freeAny);
+  free_list(todraw);
   return 0;
 }
 
@@ -33,6 +41,61 @@ void prints(char * s){
     addch(c);
   }
 }
+
+int drawnf(const char * fmt, int n, ...){
+  int i;
+  va_list args;
+  char b[11];
+  char * s;
+  int length = 0;
+  int m = 1;
+  va_start(args, n);
+  char c;
+
+  while(n && (c = *(fmt++))){
+    if('%' == c){
+      switch(*(fmt++)){
+      case 'c':
+	c = (int)(va_arg(args, int));
+	--n;
+	addch(c);
+      case 'i':
+	i = va_arg(args, int);
+	if(!i){
+	  --n;
+	  addch('0');
+	  break;
+	}
+	if(i < 0){
+	  m = -1;
+	  --n;
+	  addch('-');
+	}
+	length = 0;
+	while(i){
+	  b[length++] = (i % 10)*m + '0';
+	  b[length] = 0;
+	  i = i/10;
+	}
+	while(n && length--){
+	  --n;
+	  addch(b[length]);
+	}
+	break;
+      case 's':
+	s = va_arg(args, char *);
+	n = printns(s, n);
+	break;
+      }
+    }else{
+      addch(c);
+      --n;
+    }
+  }
+  va_end(args);
+  return n;
+}
+
 
 int printns(char * s, int n){
   char c;
@@ -111,8 +174,10 @@ short * init_colors(short len){
   return colors;
 }
 
-void redraw(){
+void make_drawable(int x, int y, void *data, draw_fn draw);
 
+void redraw(){
+  
 }
 
 int input_loop(){
@@ -122,7 +187,7 @@ int input_loop(){
   if(c < 0 || c > KEY_MAP_SIZE)
     c = 0;
   f = key_map[c]; 
-  if(f(c))
+  if(f(NULL, c))
     return 1;
   return 0;
 }
@@ -131,12 +196,14 @@ int graphics_main(){
   if(start_graphics())
     return 1;
   bind_keys();
-  key_resize(410);
+  key_resize(NULL, 410);
   
   erase();
   move(0,0);
   flavor *test = make_flavor(colors[0], strdup("hello "), make_flavor(colors[1], strdup("nice (very) (ultra) (super) "), make_flavor(colors[2], strdup("day!"), NULL)));
   printncs(test, 20);
+  move(1, 0);
+  drawnf(" %s |%i < %i|", MAX_X, "piggu", 10, 0x7FFFFFFF);
   free_flavor(test);
   while(!input_loop());
   refresh();

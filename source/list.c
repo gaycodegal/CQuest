@@ -134,3 +134,8 @@ void static_map_list(list *l, void *(* map_fn)(void *)){
     n = n->next;
   }
 }
+
+void *freeAny(void *item){
+  if(item != NULL) free(item);
+  return NULL;
+}

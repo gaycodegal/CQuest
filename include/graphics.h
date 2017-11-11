@@ -7,6 +7,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include "keybind.h"
+#include "list.h"
 #define COLOR_GOOD_M 1
 #define COLOR_MID_M 2
 #define COLOR_LOW_M 3
@@ -19,6 +20,19 @@ typedef struct s_flavor {
   char * text;
 } flavor;
 
+typedef void (*draw_fn)(int, int, void *);
+
+typedef struct s_drawable {
+  int x;
+  int y;
+  draw_fn draw;
+  void *data;
+} drawable;
+
+void empty_todraw();
+void make_drawable(int x, int y, void *data, draw_fn draw);
+list *todraw;
+int drawnf(const char * fmt, int n, ...);
 int start_graphics();
 int end_graphics();
 void prints(char * s);

@@ -40,7 +40,7 @@ void *free_statbar(void *bar){
 healthbar * make_healthbar(int health, int length){
   healthbar * hbar = (healthbar *)malloc(sizeof(healthbar));
   char * bar;
-  char c = '/';
+  char c = ':';
   int i;
   --length;
   bar = (char *)malloc(sizeof(char) * length);
@@ -161,7 +161,7 @@ float frand(){
   return (float)rand()/((float)RAND_MAX);
 }
 
-int attack1(int c){
+int attack1(void *data, int c){
   int v = fighting->health->value;
   float f = (frand() * (float)(player->attack->max - player->attack->value) + player->attack->value);
   v -= (int)f;
@@ -182,7 +182,7 @@ int battle_main(){
     return 1;
   bind_keys();
   battle_keys();
-  key_resize(410);
+  key_resize(NULL, 410);
 
   monster *m = make_monster(make_stat(100, 100), make_stat(1, 5));
   fighting = m;

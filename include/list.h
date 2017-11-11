@@ -46,4 +46,6 @@ void free_list(list*);
 
 void static_map_list(list*, void *(*)(void *));
 
+void *freeAny(void *item);
+
 #endif
