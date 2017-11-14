@@ -13,12 +13,14 @@ void prompt_keys(){
   key_map[27] = &key_quit;
   key_map[410] = &key_resize;
   key_map[263] = &key_backspace_prompt;
+  key_map[260] = &key_left_prompt;
+  key_map[261] = &key_right_prompt;
 }
 
 prompt *make_prompt(promptfn receiver){
   prompt *p = NEW(prompt);
   p->buffer[0] = 0;
-  p->offset = p->buffer;
+  p->offset = 0;
   p->receiver = receiver;
   p->cursor = 0;
   p->x = 0;
@@ -26,10 +28,43 @@ prompt *make_prompt(promptfn receiver){
   return p;
 }
 
-void display_prompt(int x, int y, void *d){
+void draw_prompt(int x, int y, void *d){
   prompt *p = (prompt *)d;
   move(p->y, p->x);
-  drawnf("> %s", MAX_X, p->offset);
+  drawnf("> %s", MAX_X, p->buffer + p->offset);
+}
+
+void center_prompt(prompt *p){
+  int o = p->cursor - MAX_X + 3;
+  if(o < 0)
+    o = 0;
+  p->offset = o;
+}
+
+void shift_prompt(prompt *p, int forward){
+  if(forward == 0){
+    if(0 == p->offset)
+      return;
+    --(p->offset);
+    return;
+  }
+  if(255 == p->offset || p->buffer[p->offset + 1] == 0)
+      return;
+    ++(p->offset);
+}
+
+int key_left_prompt(void *data, int c){
+  prompt *p = (prompt *)data;
+  shift_prompt(p, 0);
+  redraw();
+  return 0;
+}
+
+int key_right_prompt(void *data, int c){
+  prompt *p = (prompt *)data;
+  shift_prompt(p, 1);
+  redraw();
+  return 0;
 }
 
 int key_backspace_prompt(void *data, int c){
@@ -39,9 +74,9 @@ int key_backspace_prompt(void *data, int c){
     return 0;
   }
   --(p->cursor);
+  center_prompt(p);
   p->buffer[p->cursor] = 0;
-  erase();
-  display_prompt(0,0,p);
+  redraw();
   return 0;
 }
 
@@ -50,9 +85,9 @@ int key_return_prompt(void *data, int c){
   p->receiver(p->buffer);
   p->cursor = 0;
   p->buffer[p->cursor] = 0;
+  p->offset = 0;
   
-  erase();
-  display_prompt(0,0,p);
+  redraw();
   return 0;
 }
 
@@ -65,8 +100,9 @@ int key_write_prompt(void *data, int c){
   }
   p->buffer[p->cursor] = c;
   ++(p->cursor);
+  center_prompt(p);
   p->buffer[p->cursor] = 0;
-  display_prompt(0,0,p);
+  draw_prompt(0,0,p);
   return 0;
 }
 
@@ -90,12 +126,11 @@ int prompt_main(){
   if(start_graphics())
     return 1;
   prompt_keys();
-  key_resize(NULL, 410);
   prompt *p = make_prompt(&prompttest);
-  display_prompt(0,0,p);
-  //print_attacks();
+  add_elem(make_drawable(0, 0, p, &draw_prompt), todraw);
+  redraw();
   while(!prompt_input(p));
-  
+  freeAny(p);
   end_graphics();
   return 0;
 }

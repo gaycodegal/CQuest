@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "hashmap.h"
 #include "list.h"
+#include "prompt.h"
 
 typedef struct s_healthbar {
   char c;
@@ -42,15 +43,15 @@ void statbar_color(statbar *s, short cval, short cbase);
 void set_monster_health(monster *m, int value);
 stat *make_stat(int v, int m);
 monster *make_monster(stat * health, stat * attack);
-void draw_monster(int x, int y, monster *m);
+void draw_monster(int x, int y, void *m);
 void *free_monster(void *mons);
 statbar * make_statbar(char *sym, char *delim, int score, int base);
-void draw_statbar(int x, int y, statbar *bar);
+void draw_statbar(int x, int y, void *bar);
 void *free_statbar(void *bar);
 healthbar * make_healthbar(int health, int length);
 void set_health(healthbar *bar, int value);
 void free_healthbar(healthbar *bar);
-void draw_healthbar(int x, int y, healthbar *bar);
+void draw_healthbar(int x, int y, void *bar);
 int battle_main();
 
 #endif

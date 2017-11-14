@@ -1,3 +1,0 @@
-int graphics_main(){
-  return 0;
-}

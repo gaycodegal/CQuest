@@ -17,6 +17,7 @@ int start_graphics(){
   init_pair(colors[0], COLOR_YELLOW, COLOR_BLACK);
   init_pair(colors[1], COLOR_RED, COLOR_BLACK);
   init_pair(colors[2], COLOR_BLUE, COLOR_BLACK);
+  getmaxyx(stdscr, MAX_Y, MAX_X);
   return 0;
 }
 
@@ -174,10 +175,24 @@ short * init_colors(short len){
   return colors;
 }
 
-void make_drawable(int x, int y, void *data, draw_fn draw);
+drawable *make_drawable(int x, int y, void *data, draw_fn draw){
+  drawable *d = NEW(drawable);
+  d->data = data;
+  d->x = x;
+  d->y = y;
+  d->draw = draw;
+  return d;
+}
 
 void redraw(){
-  
+  node *n = todraw->head;
+  drawable *d;
+  erase();
+  while(n != NULL){
+    d = (drawable *)(n->data);
+    d->draw(d->x, d->y, d->data);
+    n = n->next;
+  }
 }
 
 int input_loop(){

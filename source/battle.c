@@ -26,7 +26,8 @@ void statbar_set(statbar *b, int score, int base){
   snprintf(b->fbase->text, 10, "%i", base);
 }
 
-void draw_statbar(int x, int y, statbar * bar){
+void draw_statbar(int x, int y, void *s){
+  statbar *bar = (statbar *)s;
   move(y, x);
   printncs(bar->ftotal, MAX_X - x);
 }
@@ -91,12 +92,14 @@ void free_healthbar(healthbar * bar){
   free(bar);
 }
 
-void draw_healthbar(int x, int y, healthbar * bar){
+void draw_healthbar(int x, int y, void *b){
+  healthbar *bar = (healthbar *)b;
   move(y, x);
   printncs(bar->display, MAX_X - x);
 }
 
-void draw_monster(int x, int y, monster *m){
+void draw_monster(int x, int y, void *mon){
+  monster * m = (monster *)mon;
   int n;
   move(y, x);
   n = MAX_X - x;
@@ -168,7 +171,6 @@ int attack1(void *data, int c){
   
   if (v < 0) v = 0;
   set_monster_health(fighting, v);
-  draw_monster(0, 0, fighting);
   return 0; 
 }
 
@@ -182,18 +184,17 @@ int battle_main(){
     return 1;
   bind_keys();
   battle_keys();
-  key_resize(NULL, 410);
 
   monster *m = make_monster(make_stat(100, 100), make_stat(1, 5));
   fighting = m;
   player = m;
   
-  erase();
-  move(0,0);
-  draw_monster(0, 0, m);  
+  add_elem(make_drawable(0, 0, m, &draw_monster), todraw);
+  /*prompt *p = make_prompt(&prompttest);
+    add_elem(make_drawable(0, 0, p, &display_prompt), todraw);*/
+  redraw();
 
-  while(!input_loop());
-  refresh();
+  while(!input_loop()) redraw();
 
   end_graphics();
   free_monster(m);

@@ -1,5 +1,24 @@
 #include "attacks.h"
 
+choices * make_choices(list *opts){
+  choices *c = NEW(choices);
+  c->opts = opts;
+  return c;
+}
+
+void *free_choices(void *data){
+  choices *c = (choices *)data;
+  static_map_list(c->opts, &freeAny);
+  free_list(c->opts);
+  free(c);
+  return NULL;
+}
+
+void draw_choices(int x, int y, void *data){
+  choices *c = (choices *)data;
+  print_attacks(c->opts, c->combos);
+}
+
 void printline(int y, char c){
   int i;
   move(y, 0);
@@ -23,22 +42,29 @@ void print_attacks(list * opts, map_t combos){
   
 }
 
+int attacks_receiver(const char *buffer){
+  return 0;
+}
+
 int attacks_main(){
   if(start_graphics())
     return 1;
-  bind_keys();
+  prompt_keys();
   key_resize(NULL, 410);
   list *temp = make_list();
+  prompt *p = make_prompt(&attacks_receiver);
+  add_elem(make_drawable(0, 0, p, &draw_prompt), todraw);
+  
   append_elem(strdup("Big Slash"), temp);
   append_elem(strdup("Crush"), temp);
   append_elem(strdup("Dazzling Heal"), temp);
-  print_attacks(temp, NULL);
-  
-  static_map_list(temp, &freeAny);
-  free_list(temp);
-  //print_attacks();
-  while(!input_loop());
 
+  choices *c = make_choices(temp);
+  add_elem(make_drawable(0, 0, c, &draw_choices), todraw);
+  redraw();  
+  while(!prompt_input(p));
+  free_choices(c);
+  freeAny(p);
   end_graphics();
   return 0;
 }

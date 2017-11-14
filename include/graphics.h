@@ -30,7 +30,7 @@ typedef struct s_drawable {
 } drawable;
 
 void empty_todraw();
-void make_drawable(int x, int y, void *data, draw_fn draw);
+drawable *make_drawable(int x, int y, void *data, draw_fn draw);
 list *todraw;
 int drawnf(const char * fmt, int n, ...);
 int start_graphics();
