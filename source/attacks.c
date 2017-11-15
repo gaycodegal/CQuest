@@ -51,14 +51,10 @@ int attacks_main(){
     return 1;
   prompt_keys();
   key_resize(NULL, 410);
-  list *temp = make_list();
+  list *temp = make_list_from(3, strdup("Big Slash"), strdup("Crush"), strdup("Dazzling Heal"));
   prompt *p = make_prompt(&attacks_receiver);
   add_elem(make_drawable(0, 0, p, &draw_prompt), todraw);
   
-  append_elem(strdup("Big Slash"), temp);
-  append_elem(strdup("Crush"), temp);
-  append_elem(strdup("Dazzling Heal"), temp);
-
   choices *c = make_choices(temp);
   add_elem(make_drawable(0, 0, c, &draw_choices), todraw);
   redraw();  

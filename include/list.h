@@ -1,6 +1,7 @@
 #ifndef _LIST_H_
 #define _LIST_H_
 #include <stdlib.h>
+#include <ncurses.h>
 #include "util.h"
 
 typedef struct s_list {
@@ -20,6 +21,8 @@ typedef struct s_node {
  */
 list *make_list();
 
+list *make_list_from(int n, ...);
+  
 /*
   Allocates and returns a node with the given element. You may
   create nodes with NULL element.

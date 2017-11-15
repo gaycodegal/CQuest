@@ -1,4 +1,19 @@
 #include "list.h"
+#include <stdio.h>
+
+list *make_list_from(int n, ...){
+  list *lst = make_list();
+  va_list args;
+  if(n < 0)
+    n = 0;
+  va_start(args, n);
+  while(n--){
+    append_node(va_arg(args, void*), lst);
+  }
+  va_end(args);
+  printf("asdf\n");
+  return lst;
+}
 
 list *make_list(){
   list *l = MALLOC(list, 1);
