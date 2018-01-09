@@ -118,7 +118,7 @@ int prompt_input(prompt *prompt){
   return 0;
 }
 
-int prompttest(const char * result){
+static int prompttest(const char * result){
   return 0;
 }
 

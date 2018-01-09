@@ -174,16 +174,17 @@ int attack1(void *data, int c){
   return 0; 
 }
 
-void battle_keys(){
-  key_map[49] = &attack1;
+static int prompttest(const char * result){
+  return 0;
 }
 
 int battle_main(){
   srand((unsigned int)time(NULL));
   if(start_graphics())
     return 1;
-  bind_keys();
-  battle_keys();
+  prompt_keys();
+  
+  prompt *p = make_prompt(&prompttest);
 
   monster *m = make_monster(make_stat(100, 100), make_stat(1, 5));
   fighting = m;
@@ -192,10 +193,12 @@ int battle_main(){
   add_elem(make_drawable(0, 0, m, &draw_monster), todraw);
   /*prompt *p = make_prompt(&prompttest);
     add_elem(make_drawable(0, 0, p, &display_prompt), todraw);*/
+  
+  add_elem(make_drawable(0, 0, p, &draw_prompt), todraw);
   redraw();
-
-  while(!input_loop()) redraw();
-
+  while(!prompt_input(p));
+  freeAny(p);
+  
   end_graphics();
   free_monster(m);
 
